@@ -1,4 +1,4 @@
-workspace "Clef"
+workspace "Staff"
   architecture "x64"
   configurations { "Debug", "Release" }
   startproject "ClefApp"
