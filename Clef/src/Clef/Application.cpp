@@ -1,6 +1,5 @@
 #include "Application.h"
 
-#include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
 #include <stdio.h>          // printf, fprintf
@@ -10,6 +9,8 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 //#include <vulkan/vulkan_beta.h>
+
+#include <glm/glm.hpp>
 
 #include "ImGui/comfortaa.embed"
 
@@ -375,6 +376,7 @@ namespace Clef
 
     Application::~Application()
     {
+        m_isRunning = false;
         shutdown();
     }
 
@@ -399,6 +401,9 @@ namespace Clef
             // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
             // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
             glfwPollEvents();
+
+            for (auto& layer : m_layerStack)
+                layer->onUpdate(m_timeStep);
 
             // Resize swap chain?
             if (g_SwapChainRebuild)
@@ -425,7 +430,8 @@ namespace Clef
                 // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
                 // because it would be confusing to have two docking targets within each others.
                 ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
-                //window_flags |= ImGuiWindowFlags_MenuBar;
+                if (m_menubarCallback)
+                    window_flags |= ImGuiWindowFlags_MenuBar;
 
                 const ImGuiViewport* viewport = ImGui::GetMainViewport();
                 ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -460,6 +466,19 @@ namespace Clef
                     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
                 }
 
+                if (m_menubarCallback)
+                {
+                    if (ImGui::BeginMenuBar())
+                    {
+                        m_menubarCallback();
+                        ImGui::EndMenuBar();
+                    }
+                }
+
+                for (auto& layer : m_layerStack)
+                    layer->onUIRender();
+
+
                 ImGui::End();
             }
 
@@ -485,7 +504,16 @@ namespace Clef
             if (!main_is_minimized)
                 FramePresent(wd);
 
+            float time = getTime();
+            m_frameTime = time - m_lastFrameTime;
+            m_timeStep = glm::min<float>(m_frameTime, 0.0333f);
+            m_lastFrameTime = time;
         }
+    }
+
+    inline float Application::getTime() const
+    {
+         return glfwGetTime();
     }
 
     void Application::init()
@@ -533,8 +561,8 @@ namespace Clef
         //io.ConfigViewportsNoTaskBarIcon = true;
 
         // Setup Dear ImGui style
-        //ImGui::StyleColorsDark();
-        ImGui::StyleColorsLight();
+        ImGui::StyleColorsDark();
+        //ImGui::StyleColorsLight();
 
         // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
         ImGuiStyle& style = ImGui::GetStyle();
@@ -601,6 +629,12 @@ namespace Clef
 
     void Application::shutdown()
     {
+        for (auto& layer : m_layerStack)
+            layer->onDetach();
+
+        m_layerStack.clear();
+
+
         VkResult err = vkDeviceWaitIdle(g_Device);
         check_vk_result(err);
 

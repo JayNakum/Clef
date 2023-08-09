@@ -11,6 +11,7 @@ project "ClefApp"
   {
     "../vendor/imgui",
     "../vendor/glfw/include",
+    "../vendor/glm",
 
     "../Clef/src",
 
