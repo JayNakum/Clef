@@ -9,6 +9,7 @@ project "ClefApp"
 
   includedirs
   {
+    "../vendor/imgui",
     "../vendor/glfw/include",
 
     "../Clef/src",
@@ -18,7 +19,7 @@ project "ClefApp"
 
   links
   {
-    "Clef"
+    "Clef",
   }
 
   targetdir ("../bin/" .. outputdir .. "/%{prj.name}")

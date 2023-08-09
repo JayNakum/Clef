@@ -10,13 +10,18 @@ project "Clef"
   includedirs
   {
     "src",
+
+    "../vendor/imgui",
     "../vendor/glfw/include",
+    
     "%{IncludeDir.VulkanSDK}",
   }
 
   links
   {
+    "ImGui",
     "GLFW",
+
     "%{Library.Vulkan}",
   }
   
