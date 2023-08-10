@@ -12,6 +12,7 @@ project "ClefApp"
     "../vendor/imgui",
     "../vendor/glfw/include",
     "../vendor/glm",
+    "../vendor/stb_image",
 
     "../Clef/src",
 

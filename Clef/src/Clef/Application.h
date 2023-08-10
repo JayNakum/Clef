@@ -9,7 +9,10 @@
 #include <memory>
 #include <functional>
 
+#include <vulkan/vulkan.h>
+
 struct GLFWwindow;
+void check_vk_result(VkResult err);
 
 namespace Clef
 {
@@ -28,6 +31,16 @@ namespace Clef
 
 		void run();
 		inline void close() { m_isRunning = false; }
+		static Application& get();
+
+		static VkInstance getInstance();
+		static VkPhysicalDevice getPhysicalDevice();
+		static VkDevice getDevice();
+
+		static VkCommandBuffer getCommandBuffer(bool begin);
+		static void flushCommandBuffer(VkCommandBuffer commandBuffer);
+
+		static void submitResourceFree(std::function<void()>&& func);
 
 		void setMenubarCallback(const std::function<void()>& menubarCallback) { m_menubarCallback = menubarCallback; }
 
